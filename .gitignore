@@ -1,0 +1,28 @@
+# Competition data & third-party assets — NEVER commit
+datasets/
+public_kernels/
+public_datasets/
+reports/
+transfer/
+submissions/
+# Credentials
+*.kaggle/
+kaggle.json
+*.key
+.env
+# Large regenerable caches / binaries
+cv/artifacts/
+*.pkl
+*.npz
+*.npy
+*.cbm
+*.txt.model
+*.joblib
+# Python / env
+__pycache__/
+*.pyc
+.venv*/
+.python_pkgs/
+catboost_info/
+.pytest_cache/
+.ipynb_checkpoints/
