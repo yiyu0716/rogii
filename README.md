@@ -1,47 +1,30 @@
-# ROGII Wellbore Geology Prediction — CV Infrastructure & EDA
+# ROGII 井筒地质预测代码包
 
-Private working repo for the [ROGII Wellbore Geology Prediction](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction)
-Kaggle competition. Contains **only my own** cross-validation infrastructure and exploratory
-analysis — **no competition data and no third-party models/kernels are included** (see below).
+本仓库是 ROGII Wellbore Geology Prediction 项目的精简、可审计源码包。它仅保留五条核心模型臂和第一名 Ruby 方案的公开代码/本地严格复现代码：
 
-## What's here
+- `models/full249/`：249 维 LightGBM anchor、Geo5 OOF 特征重建和训练入口；
+- `models/warp/`：GR 序列 WARP（SCA-U2Net + typewell cross-attention）；
+- `models/hmm/`：GR/typewell likelihood 状态空间解码；
+- `models/gsn/`：GeoSteerNet SDF + segmentation 路径模型及 v3.51 Geo5 OOF 复现；
+- `models/sg_path/`：候选 path、SG cluster selector、member selector 和严格 OOF sidecar 构建；
+- `models/ruby_1st/`：第一名公开 `0724v1` 与 `0803v2` 代码，以及禁用 XY 邻井和 target-PF 泄漏后的 Geo5 工作副本。
 
-```
-cv/                 CV infrastructure (the core asset)
-  cv_runner.py        frozen 3-split CV (well / typewell / spatial), Predictor protocol,
-                      row-weighted RMSE + per-well p50/p90/max + worst-by-SSE scoring
-  splits/             frozen fold assignments (well_id -> fold) for reproducibility
-  level_engine.py     physics-identity drift engine (TVT+Z = formation_top + b_well)
-  ring0.py / ring1_anchor.py / level_gbm.py / level_combine.py   level-vs-shape diagnostics
-  stage_c*.py         row-level drift-target GBDT harness
-  ncc_feat.py / pf_feat.py   multi-scale NCC & particle-filter feature builders
-  graft.py / graft_diag.py   graft-onto-baseline experiments
-  *_report.md         written-up results for each stage
-eda.md, eda-2.md, 比赛定义.md   EDA write-ups and the problem/strategy definition
-eda/                EDA scripts, notebooks (outputs cleared), and derived artifact CSVs
+详细中文说明见 [docs/代码使用与复现指南.md](docs/代码使用与复现指南.md)。各模型原理分别见 `docs/full249.md`、`docs/warp.md`、`docs/hmm.md`、`docs/gsn.md`、`docs/sg_path.md` 与 `docs/1st.md`。
+
+## 固定验证协议
+
+所有当前 OOF 比较使用 `metadata/geo_kmeans_5fold.csv`：
+
+```text
+SHA256: ac4351cedb0f0a70edabf95308aafc73770c1190ca4d3e68c618f6b4600d64da
 ```
 
-## NOT included (and why)
+这是以整口井为单位的 canonical Geo5 划分。不得混入旧 GroupKFold、物理 54-group 或非 OOF 缓存。
 
-- **Competition data** (`datasets/.../{train,test}`) — Kaggle competition data, not redistributable.
-  Download it from the competition page.
-- **Third-party models / kernels / artifacts** — others' work, not mine to publish.
-- **Credentials, large regenerable caches** (`cv/artifacts/*.pkl|*.npz`, etc.) — see `.gitignore`.
+## 不包含的内容
 
-## Reproducing
+为避免把数 TB 的缓存、权重、提交 CSV 和训练标签产物误当成源码，本仓库不含：比赛数据、fold checkpoint、OOF parquet/npy、PF 缓存、Kaggle dataset 导出、模型权重和任何 submission.csv。运行训练前需将竞赛数据放入 `datasets/rogii-wellbore-geology-prediction/`，并为相应臂重建训练派生产物。
 
-1. Download the competition data into `datasets/rogii-wellbore-geology-prediction/{train,test}`
-   plus `sample_submission.csv`.
-2. Point the code at the data: `export ROGII_ROOT=$(pwd)` (paths auto-detect; see `cv/cv_runner.py`).
-3. `python cv/cv_runner.py` regenerates the frozen splits and runs the baseline ladder
-   (carry-forward must reproduce row-weighted RMSE ≈ 15.91 across all three splits).
+## 数据安全
 
-## Key calibrated scales (row-weighted RMSE)
-
-| | RMSE |
-|---|---|
-| carry-forward (safe floor) | 15.91 |
-| best-per-well constant (oracle, unreachable) | 9.04 |
-| smooth-201 (shape ceiling, needs true path) | 0.39 |
-
-The CV is LB-aligned: carry-forward CV 15.91 ≈ public-LB constant 15.88.
+部署与 OOF 必须只使用：水平井可见 `MD/X/Y/Z/GR`、可见 heel `TVT_input`、typewell 文件和训练 fold 学到的冻结资产。未知段真实 `TVT` 只可作为训练标签和 held-fold 评估目标，绝不能进入测试或验证特征。

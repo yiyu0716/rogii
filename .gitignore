@@ -1,28 +1,19 @@
-# Competition data & third-party assets — NEVER commit
+# 数据、模型权重、可再生缓存与提交文件不属于源码仓库。
 datasets/
-public_kernels/
-public_datasets/
-reports/
-transfer/
-submissions/
-# Credentials
-*.kaggle/
-kaggle.json
-*.key
-.env
-# Large regenerable caches / binaries
-cv/artifacts/
-*.pkl
-*.npz
+OOF/
 *.npy
-*.cbm
-*.txt.model
-*.joblib
-# Python / env
+*.npz
+*.parquet
+*.pqt
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.pkl
+!models/ruby_1st/**/*.pkl
+submission*.csv
 __pycache__/
-*.pyc
-.venv*/
-.python_pkgs/
-catboost_info/
 .pytest_cache/
-.ipynb_checkpoints/
+.venv/
+.venv_*/

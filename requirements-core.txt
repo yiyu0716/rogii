@@ -1,0 +1,12 @@
+# 按模型臂安装；CUDA 版 torch/numba 请按本机驱动与 GPU 另行选择。
+numpy
+pandas
+scipy
+scikit-learn
+lightgbm
+joblib
+pyarrow
+torch
+timm
+numba
+safetensors
